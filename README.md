@@ -5,7 +5,7 @@ docker-compose up --build
 docker-compose exec test sh /scripts/test_web.sh
 
 
-docker-compose exec test sh /scripts/purge_image1.sh
+docker-compose exec test sh /scripts/purge_image.sh
 
 
 docker-compose exec test sh /scripts/test_web.sh
