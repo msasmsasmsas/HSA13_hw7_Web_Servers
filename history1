@@ -1,0 +1,37 @@
+docker-compose down
+docker-compose up --build -d
+docker-compose restart web-proxy
+
+docker-compose exec web-proxy nginx -t
+
+
+
+
+
+# запуск тестового скрипта
+ docker-compose exec test sh /scripts/test_web_proxy.sh
+
+# запуск серипта очистки кеша
+docker-compose exec test sh /scripts/purge_image_web_proxy.sh
+ docker-compose exec test curl -v -X PURGE http://web-proxy/images/AI.png
+ docker-compose exec test curl -v -X PURGE http://web-proxy/purge/images/AI.png
+
+ docker-compose exec web-proxy cat /var/log/nginx/access.log
+ docker-compose exec web-proxy cat /var/log/nginx/error.log
+ docker-compose exec web-proxy tail -f /var/log/nginx/cache_purge.log
+
+Выполните следующую команду, чтобы вывести конфигурацию Nginx в терминал:
+docker-compose exec web-proxy nginx -T
+
+docker-compose exec web-proxy cat /etc/nginx/nginx.conf
+
+
+Вместо grep в PowerShell используйте следующую команду:
+docker-compose exec web-proxy nginx -T | Select-String "proxy_cache_path
+
+
+Проверьте конфигурацию кеша Nginx командой:
+docker-compose exec web-proxy cat /etc/nginx/nginx.conf
+
+Чтобы убедиться, что кешируемые файлы действительно сохраняются, выполните:
+docker-compose exec web-proxy find /var/cache/nginx -type f
