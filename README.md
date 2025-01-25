@@ -1,15 +1,63 @@
 # HSA13_hw7_Web_Servers
 
-docker-compose up --build
+
+## nginx.conf
 
 ```bash
+load_module modules/ngx_http_cache_purge_module.so;
 
+worker_processes 1;
+
+events {
+    worker_connections 1024;
+}
+
+http {
+    include       mime.types;
+    default_type  application/octet-stream;
+
+    # Cache settings for images
+    proxy_cache_path /tmp/nginx_cache levels=1:2 keys_zone=images:10m inactive=10s max_size=10g use_temp_path=off;
+
+    sendfile on;
+    keepalive_timeout 65;
+
+    include /etc/nginx/conf.d/*.conf;
+} 
+```
+
+## docker-compose up --build
+
+```bash
 [+] Running 4/4
  ✔ Network hsa13_hw7_web_servers_nginx_network  Created                                                                                                                                0.0s 
  ✔ Container web                                Started                                                                                                                                0.8s 
  ✔ Container hsa13_hw7_web_servers-test-1       Started                                                                                                                                0.8s 
  ✔ Container web-proxy                          Started                                                                                                                                0.9s 
-(.venv) PS E:\HSA13\HSA13_hw7_Web_Servers\tests\scripts> docker-compose exec test sh /scripts/test_web_proxy.sh
+```
+
+
+## /scripts/test_web_proxy.sh
+```bash
+#!/bin/bash
+
+# Test image URL (using web service name since we're in Docker network)
+IMAGE_URL="http://web-proxy/images/AI.png"
+
+echo "First request:"
+http -h GET "$IMAGE_URL"
+
+echo -e "\nSecond request:"
+http -h GET "$IMAGE_URL"
+
+echo -e "\nThird request:"
+http -h GET "$IMAGE_URL"
+```
+
+## docker-compose exec test sh /scripts/test_web_proxy.sh 
+
+```bash
+ 
 First request:
 HTTP/1.1 200 OK
 Accept-Ranges: bytes
@@ -54,9 +102,29 @@ X-Debug-Cache-Key: http://web-proxy/images/AI.png
 
 
 ```
+
+
+## /scripts/purge_image_web_proxy.sh
+
+```bash
+#!/bin/sh
+
+#http PURGE http://web-proxy/purge/images/AI.png
+
+echo "Sending PURGE request..."
+curl -v -X PURGE http://web-proxy/purge/images/AI.png
+
+
+echo "Checking if cache is cleared..."
+curl -I http://web-proxy/images/AI.png
+
+```
+
+
+## docker-compose exec test sh /scripts/purge_image_web_proxy.sh
+
 ```bash
 
-(.venv) PS E:\HSA13\HSA13_hw7_Web_Servers\tests\scripts> docker-compose exec test sh /scripts/purge_image_web_proxy.sh
 Sending PURGE request...
 * Host web-proxy:80 was resolved.
 * IPv6: (none)
@@ -96,10 +164,10 @@ Accept-Ranges: bytes
 ```
 
 
-
+## docker-compose exec test sh /scripts/test_web_proxy.sh
 
 ```bash
-(.venv) PS E:\HSA13\HSA13_hw7_Web_Servers\tests\scripts> docker-compose exec test sh /scripts/test_web_proxy.sh
+
 First request:
 HTTP/1.1 200 OK
 Accept-Ranges: bytes
@@ -140,6 +208,8 @@ Last-Modified: Fri, 17 Jan 2025 20:17:46 GMT
 Server: nginx/1.25.3
 X-Cache-Status: HIT
 X-Debug-Cache-Key: http://web-proxy/images/AI.png
+
+
 
 ```
 
