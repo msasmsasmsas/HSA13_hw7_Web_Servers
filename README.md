@@ -2,12 +2,13 @@
 
 docker-compose up --build
 
+```bash
 docker-compose exec test sh /scripts/test_web.sh
 
-
+```bash
 docker-compose exec test sh /scripts/purge_image.sh
 
-
+```bash
 docker-compose exec test sh /scripts/test_web.sh
 
 
